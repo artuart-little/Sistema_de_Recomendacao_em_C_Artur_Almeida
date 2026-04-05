@@ -1,39 +1,50 @@
-# 🛒 Sistema de Recomendação (C/C++)
+# Sistema de Recomendação (C++ / Python)
 
-Este repositório contém a implementação de um **Sistema de Recomendação** para o varejo, desenvolvido como projeto acadêmico para a disciplina de Programação Estruturada. 
+Este repositório contém a implementação híbrida em C++ e Python de um **Sistema de Recomendação**, desenvolvido como projeto acadêmico para a disciplina de Programação Estruturada. 
 
-O sistema processa um histórico massivo de compras de clientes e utiliza o **Método da Vizinhança (Filtragem Colaborativa)** e a **Distância de Jaccard** para calcular a similaridade de consumo entre os usuários.
+O sistema une a velocidade de processamento e gestão de memória do **C++** com a facilidade de prototipagem e uso do **Python**, através de *bindings* construídos com **Pybind11**. A lógica central utiliza o **Método da Vizinhança (Filtragem Colaborativa)** e a **Distância de Jaccard** para calcular a similaridade de consumo entre os usuários e recomendar novos produtos.
 
-## 🚀 Funcionalidades
+## Funcionalidades e Atividades
 
-O projeto é dividido em dois módulos principais de processamento:
+O projeto foi construído de forma modular, completando as seguintes etapas funcionais:
 
-- **Módulo de Busca (Atividade 1):** - Leitura otimizada de um arquivo CSV contendo milhares de registros de compras.
-  - Conversão de IDs de texto (strings) para índices numéricos internos.
-  - Sistema de busca interativa em terminal com complexidade de tempo $O(\log N)$
+- **Módulo de Busca:**
+  - Leitura extremamente rápida do arquivo CSV (usando `fscanf` do C).
+  - Mapeamento dinâmico de chaves em texto para IDs numéricos utilizando Árvores Binárias de Busca (`std::map`), reduzindo a complexidade temporal para $O(\log N)$.
 
-- **Módulo de Similaridade (Atividade 2):**
-  - Transformação do histórico de compras em uma matriz de incidência (Clientes x Produtos).
-  - Multiplicação algébrica da matriz por sua transposta ($A \times A^T$) para descobrir a interseção exata de produtos em comum entre todos os clientes.
-  - Cálculo da Matriz de Similaridade utilizando a métrica da Distância de Jaccard.
+- **Módulo de Similaridade:**
+  - Transformação do histórico de compras em uma matriz de incidência.
+  - Multiplicação algébrica da matriz por sua transposta ($A \times A^T$).
+  - **Otimização de Simetria:** Redução drástica do tempo de processamento computando apenas o triângulo superior da matriz ($i \le j$) e espelhando os resultados.
 
-## 🛠️ Tecnologias e Arquitetura
+- **Módulo de Recomendação:**
+  - Aplicação do algoritmo de K-Vizinhos Mais Próximos (KNN).
+  - Cálculo de decaimento multiplicativo com base na distância de Jaccard para gerar um vetor de *ranking* de produtos ($R_p \leftarrow R_p \times s(c,s)$).
+  - Ordenação dos melhores produtos (`std::sort`) preservando o vínculo de IDs estruturais.
 
-O código adota uma abordagem híbrida de alta performance, unindo a velocidade da linguagem C com as estruturas de dados avançadas do C++:
+- **Integração Pybind11:**
+  - Exposição de funções globais escritas em C++ diretamente para um ecossistema Python.
+  - Conversão implícita e automática de tipagens da *Standard Template Library* (STL), como `std::vector` e `std::tuple`, para listas e tuplas nativas do Python.
 
-- **C (I/O e Performance):** Utilização de `fopen`, `fscanf` com expressões regulares de formatação (`%[^,]`) e arrays primitivos para uma leitura de arquivo extremamente rápida e direta em disco.
-- **C++ STL (Estruturas Dinâmicas):** Uso extensivo de `std::map` (Árvores Binárias de Busca) para mapeamento de clientes/produtos sem perda de performance, e `std::vector` para gestão dinâmica de memória sem necessidade de ponteiros manuais complexos.
+## Tecnologias e Arquitetura
+
+- **C++11/14:** Responsável por alocação estrutural, acesso rápido em disco e cálculos lineares massivos.
+- **Python 3:** Camada de Interface, permitindo chamadas diretas às sub-rotinas compiladas.
+- **Pybind11:** Biblioteca  utilizada para criar a ponte entre C++ e Python
 
 ## 📁 Estrutura do Projeto
 
-```
+```text
 📦 sistema-recomendacao
- ┣ 📜 dados_venda_cluster_0.csv   # Base de dados (Histórico de compras)
- ┣ 📜 dadosCSV.h                  # Estruturas primitivas (C) para leitura do buffer
- ┣ 📜 moduloListaCompras.h / .cpp # Módulo de parsing, mapeamento e criação da lista
- ┣ 📜 moduloSimilaridade.h / .cpp # Módulo matemático (Álgebra Linear e Jaccard)
- ┣ 📜 moduloBusca.h / .cpp        # Interface iterativa de pesquisa de clientes
- ┗ 📜 main.cpp                    # Orquestrador principal do sistema
+ ┣ 📜 dados_venda_inicial/        # Diretório com arquivos CSV (Base de dados)
+ ┣ 📜 sistema_recomendacao.h      # Cabeçalho global (Structs e Assinaturas)
+ ┣ 📜 moduloListaCompras.cpp      # Parsing e estruturação das compras
+ ┣ 📜 moduloSimilaridade.cpp      # Computação matemática e Jaccard
+ ┣ 📜 moduloRecomendacao.cpp      # Motor de recomendação (Ranqueamento)
+ ┣ 📜 moduloBusca.cpp             # Recuperação de histórico de clientes
+ ┣ 📜 integration.cpp             # Definições do Pybind11 (Ponte C++ -> Python)
+ ┣ 📜 setup.py                    # Script de compilação da extensão em Python
+ ┗ 📜 main.py                     # Script Python orquestrador (Testador)
 ```
 
 *Desenvolvido por Artur Almeida*
